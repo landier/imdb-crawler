@@ -14,7 +14,6 @@ class Repository:
 
     def savePerson(self, person):
         cursor = self.__session.cursor()
-        tomorrow = datetime.now().date() + timedelta(days=1)
         insert_person = ("INSERT INTO Person "
                         "(FirstName, LastName, Gender, BirthDate) "
                         "VALUES (%s, %s, %s, %s)")
@@ -26,15 +25,38 @@ class Repository:
         self.__session.commit()
         cursor.close()
 
+    def getMovie(self, movie):
+        cursor = self.__session.cursor()
+        get_movie = ("SELECT id "
+                        "FROM Movie "
+                        "WHERE Title = %s ")
+        data_movie = (movie.Title)
+
+        cursor.execute(insert_movie, data_movie)
+        #emp_no = cursor.lastrowid
+        cursor.close()
+
     def saveMovie(self, movie):
         cursor = self.__session.cursor()
-        tomorrow = datetime.now().date() + timedelta(days=1)
         insert_movie = ("INSERT INTO Movie "
                          "(Title, Year, ImdbLink) "
                          "VALUES (%s, %s, %s)")
         data_movie = (movie.Title, movie.Year, movie.ImdbLink)
 
         cursor.execute(insert_movie, data_movie)
+        #emp_no = cursor.lastrowid
+
+        self.__session.commit()
+        cursor.close()
+
+    def updateMovie(self, movie, id):
+        cursor = self.__session.cursor()
+        update_movie = ("UPDATE Movie "
+                        "SET Title = %s, Year = %s, ImdbLink = %s"
+                        "WHERE id = %s")
+        data_movie = (movie.Title, movie.Year, movie.ImdbLink, id)
+
+        cursor.execute(update_movie, data_movie)
         #emp_no = cursor.lastrowid
 
         self.__session.commit()

@@ -2,24 +2,26 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 class Movie:
-    def __init__(self, title = None, year = None, imdbLink = None):
+    def __init__(self, imdbLink = None):
         self.ImdbLink = imdbLink
-        self.Title = title
-        self.Year = year
-        self.Actors = None
-        self.Characters = None
+        self.parse(imdbLink)
 
     def parse(self, url):
-        self.ImdbLink = url
         response = urllib.request.urlopen(url)
         html = response.read()
         soup = BeautifulSoup(html)
 
         self.Title = soup.title.string[:-14]
         self.Year = soup.title.string[:-8][-4:]
-        #print(soup.find('table', 'cast_list'))
-        #self.__actors = soup.find_all('td', 'name')
-        #self.__characters = soup.find_all('td', 'character')
+        self.ReleaseDate = soup.find_all("span", "nobr")[1].a.string.split("(")[0][:-1]
+
+        self.Actors = soup.find('table', 'cast_list').find_all("td", "name")
+        #for actor in actors:
+        #   print(actor.a.string)
+
+        self.Characters = soup.find('table', 'cast_list').find_all("td", "character")
+        #for character in characters:
+        #    print(character.div.string)
 
     def show(self):
         print(self.ImdbLink)
