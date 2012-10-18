@@ -1,63 +1,61 @@
-import mysql.connector
-from datetime import date, datetime, timedelta
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, create_engine
 
 class Repository:
-    def __init__(self):
-        self.__session = mysql.connector.connect(host='127.0.0.1',
-                                                 port=8889,
-                                                 database='DbSamples',
-                                                 user='root',
-                                                 password='root')
+    def __init__(self, showLog = False):
+        self.__showLog = showLog
+        self.__engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889/MovieDB', echo=self.__showLog)
+        self.__metadata = MetaData()
 
-    def __del__(self):
-        self.__session.close()
+        self.__persons = Table('Person', self.__metadata,
+            Column('Id', Integer, primary_key=True),
+            Column('Name', String(50))
+        )
 
-    def savePerson(self, person):
-        cursor = self.__session.cursor()
-        insert_person = ("INSERT INTO Person "
-                        "(FirstName, LastName, Gender, BirthDate) "
-                        "VALUES (%s, %s, %s, %s)")
-        data_person = (person.FirstName, person.LastName, person.Gender, None)
+        self.__movies = Table('Movie', self.__metadata,
+            Column('Id', Integer, primary_key=True),
+            Column('Title', String(255), nullable=False)
+        )
 
-        cursor.execute(insert_person, data_person)
-        #emp_no = cursor.lastrowid
+        self.__actors = Table('Actor', self.__metadata,
+            Column('Id', Integer, primary_key=True),
+            Column('Person_id', None, ForeignKey('Person.Id')),
+            Column('Movie_id', None, ForeignKey('Movie.Id')),
+            Column('Character', String(50), nullable=False)
+        )
 
-        self.__session.commit()
-        cursor.close()
+        self.__directors = Table('Director', self.__metadata,
+            Column('Id', Integer, primary_key=True),
+            Column('Person_id', None, ForeignKey('Person.Id')),
+            Column('Movie_id', None, ForeignKey('Movie.Id'))
+        )
 
-    def getMovie(self, movie):
-        cursor = self.__session.cursor()
-        get_movie = ("SELECT id "
-                        "FROM Movie "
-                        "WHERE Title = %s ")
-        data_movie = (movie.Title)
+    def createSchema(self):
+        self.__metadata.create_all(self.__engine)
 
-        cursor.execute(insert_movie, data_movie)
-        #emp_no = cursor.lastrowid
-        cursor.close()
+    def insertPerson(self, name):
+        ins = self.__persons.insert().values(Name=name)
 
-    def saveMovie(self, movie):
-        cursor = self.__session.cursor()
-        insert_movie = ("INSERT INTO Movie "
-                         "(Title, Year, ImdbLink) "
-                         "VALUES (%s, %s, %s)")
-        data_movie = (movie.Title, movie.Year, movie.ImdbLink)
+        if self.__showLog:
+            ins.bind = self.__engine
+            print(str(ins))
 
-        cursor.execute(insert_movie, data_movie)
-        #emp_no = cursor.lastrowid
+        ins.compile().params
+        conn = self.__engine.connect()
+        conn
+        result = conn.execute(ins)
 
-        self.__session.commit()
-        cursor.close()
+        result.inserted_primary_key
 
-    def updateMovie(self, movie, id):
-        cursor = self.__session.cursor()
-        update_movie = ("UPDATE Movie "
-                        "SET Title = %s, Year = %s, ImdbLink = %s"
-                        "WHERE id = %s")
-        data_movie = (movie.Title, movie.Year, movie.ImdbLink, id)
+    def insertMovie(self, title):
+        ins = self.__movies.insert().values(Title=title)
 
-        cursor.execute(update_movie, data_movie)
-        #emp_no = cursor.lastrowid
+        if self.__showLog:
+            ins.bind = self.__engine
+            print(str(ins))
 
-        self.__session.commit()
-        cursor.close()
+        ins.compile().params
+        conn = self.__engine.connect()
+        conn
+        result = conn.execute(ins)
+
+        result.inserted_primary_key
