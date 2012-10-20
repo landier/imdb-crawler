@@ -8,14 +8,16 @@ class Repository:
 
         self.__persons = Table('Person', self.__metadata,
             Column('Id', Integer, primary_key = True),
-            Column('Name', String(255), nullable = False)
+            Column('Name', String(255), nullable = False, unique = True)
         )
 
         self.__movies = Table('Movie', self.__metadata,
             Column('Id', Integer, primary_key = True),
-            Column('Title', String(255), nullable = False),
-            Column('ImdbLink', String(255), nullable = False),
-            Column('ReleaseDate', Date, nullable = True)
+            Column('Title', String(255), nullable = False, unique = True),
+            Column('ImdbLink', String(255), nullable = False, unique = True),
+            Column('ReleaseDate', Date, nullable = True),
+            Column('Rating', Float, nullable = True),
+            Column('Synopsis', Text, nullable = True)
         )
 
         self.__actors = Table('Actor', self.__metadata,
@@ -93,13 +95,29 @@ class Repository:
         else:
             return firstRow[0]
 
-    def saveMovie(self, movie):
+    def insertMovie(self, movie):
         result = self.__engine.connect().execute(
             self.__movies.insert()
-            .values(Title = movie.Title, ImdbLink = movie.ImdbLink, ReleaseDate = movie.ReleaseDate)
+            .values(Title = movie.Title,
+                    ImdbLink = movie.ImdbLink,
+                    ReleaseDate = movie.ReleaseDate,
+                    Rating = movie.Rating,
+                    Synopsis = movie.Synopsis)
         )
 
         return result.inserted_primary_key[0]
+
+    def saveMovie(self, movie):
+        movieId = self.getMovieId(movie.Title)
+
+        if movieId == None:
+            movieId = self.insertMovie(movie)
+
+        for directorName in movie.Directors:
+            self.saveDirector(movieId, directorName)
+
+        for actorName, characterName in movie.Actors.items():
+            self.saveActor(movieId, actorName, characterName)
 
     # Director methods
     def saveDirector(self, movieId, directorName):

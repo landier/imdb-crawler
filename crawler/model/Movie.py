@@ -1,6 +1,5 @@
-import urllib.request
+import time, re, urllib.request
 from bs4 import BeautifulSoup
-import time
 
 class Movie:
     def __init__(self, imdbLink = None):
@@ -13,8 +12,13 @@ class Movie:
         soup = BeautifulSoup(html)
 
         self.Title = soup.title.string[:-14].strip()
+        self.Rating = float(soup.find(itemprop="ratingValue").string.strip())
 
-        date = soup.find_all("span", "nobr")[1].a.string.split("(")[0][:-1].strip()
+        dates = soup.find_all("span", "nobr")
+        if len(dates) > 1:
+            date = dates[1].a.string.split("(")[0][:-1].strip()
+        else:
+            date = dates[0].a.get_text()
         try:
             self.ReleaseDate = time.strptime(date, '%d %B %Y')
         except ValueError:
@@ -24,7 +28,11 @@ class Movie:
                 try:
                     self.ReleaseDate = time.strptime(date, '%Y')
                 except ValueError:
+                    self.ReleaseDate = time.gmtime(0)
                     pass
+
+        synopsis = soup.find(itemprop="description")
+        self.Synopsis = re.sub(' +', ' ', synopsis.get_text().strip())
 
         directors = soup.find_all(itemprop="director")
         self.Directors = []
@@ -37,12 +45,12 @@ class Movie:
         self.Actors = {}
         for i in range(len(actors)):
             if characters[i].div != None:
-                characterName = characters[i].div.string
+                characterName = characters[i].div.get_text()
 
-                if characterName == None:
-                    characterName = characters[i].div.a.string
+                #if characterName == None:
+                #    characterName = characters[i].div.a.string
 
-                self.Actors[str(actors[i].a.string).strip()] = str(characterName).strip()
+                self.Actors[str(actors[i].a.string).strip()] = re.sub(' +', ' ', characterName)
             else:
                 self.Actors[str(actors[i].a.string).strip()] = None
 
