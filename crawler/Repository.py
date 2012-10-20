@@ -8,7 +8,7 @@ class Repository:
 
         self.__persons = Table('Person', self.__metadata,
             Column('Id', Integer, primary_key = True),
-            Column('Name', String(50), nullable = False)
+            Column('Name', String(255), nullable = False)
         )
 
         self.__movies = Table('Movie', self.__metadata,
@@ -22,7 +22,7 @@ class Repository:
             Column('Id', Integer, primary_key = True),
             Column('Person_id', None, ForeignKey('Person.Id')),
             Column('Movie_id', None, ForeignKey('Movie.Id')),
-            Column('CharacterName', String(50), nullable = False)
+            Column('CharacterName', String(255), nullable = True)
         )
 
         self.__directors = Table('Director', self.__metadata,
@@ -97,6 +97,28 @@ class Repository:
         result = self.__engine.connect().execute(
             self.__movies.insert()
             .values(Title = movie.Title, ImdbLink = movie.ImdbLink, ReleaseDate = movie.ReleaseDate)
+        )
+
+        return result.inserted_primary_key[0]
+
+    # Director methods
+    def saveDirector(self, movieId, directorName):
+        personId = self.savePersonIfDoesnExist(directorName)
+
+        result = self.__engine.connect().execute(
+            self.__directors.insert()
+            .values(Movie_id = movieId, Person_id = personId)
+        )
+
+        return result.inserted_primary_key[0]
+
+    # Actor methods
+    def saveActor(self, movieId, actorName, characterName):
+        personId = self.savePersonIfDoesnExist(actorName)
+
+        result = self.__engine.connect().execute(
+            self.__actors.insert()
+            .values(Movie_id = movieId, Person_id = personId, CharacterName = characterName)
         )
 
         return result.inserted_primary_key[0]

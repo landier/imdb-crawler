@@ -12,9 +12,9 @@ class Movie:
         html = response.read()
         soup = BeautifulSoup(html)
 
-        self.Title = soup.title.string[:-14]
-        self.Year = soup.title.string[:-8][-4:]
-        date = soup.find_all("span", "nobr")[1].a.string.split("(")[0][1:][:-1]
+        self.Title = soup.title.string[:-14].strip()
+
+        date = soup.find_all("span", "nobr")[1].a.string.split("(")[0][:-1].strip()
         try:
             self.ReleaseDate = time.strptime(date, '%d %B %Y')
         except ValueError:
@@ -26,14 +26,26 @@ class Movie:
                 except ValueError:
                     pass
 
-        actors = soup.find('table', 'cast_list').find_all("td", "name")
-        self.Actors = []
-        for actor in actors:
-            self.Actors.append(str(actor.a.string))
+        directors = soup.find_all(itemprop="director")
+        self.Directors = []
+        for director in directors:
+            self.Directors.append(str(director.string))
 
-        self.Characters = soup.find('table', 'cast_list').find_all("td", "character")
+        actors = soup.find('table', 'cast_list').find_all("td", "name")
+        characters = soup.find('table', 'cast_list').find_all("td", "character")
+
+        self.Actors = {}
+        for i in range(len(actors)):
+            characterName = characters[i].div.string
+
+            if characterName == None:
+                characterName = characters[i].div.a.string
+
+            self.Actors[str(actors[i].a.string).strip()] = str(characterName).strip()
+
+        #self.Characters = []
         #for character in characters:
-        #    print(character.div.string)
+        #    self.Characters.append(str(character.div.string).strip())
 
     def __repr__(self):
         return "<Movie('%s', '%s', '%s')>" % (self.ImdbLink, self.Title, self.ReleaseDate)

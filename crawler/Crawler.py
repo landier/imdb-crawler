@@ -17,6 +17,10 @@ movieList = soup.table.find_all("a")
 
 for element in movieList:
     movie = Movie(ROOT_URL + element['href'])
-    repository.saveMovie(movie)
-    for actor in movie.Actors:
-        repository.savePersonIfDoesnExist(actor)
+    movieId = repository.saveMovie(movie)
+
+    for directorName in movie.Directors:
+        repository.saveDirector(movieId, directorName)
+
+    for actorName, characterName in movie.Actors.items():
+        repository.saveActor(movieId, actorName, characterName)
