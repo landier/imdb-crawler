@@ -36,12 +36,15 @@ class Movie:
 
         self.Actors = {}
         for i in range(len(actors)):
-            characterName = characters[i].div.string
+            if characters[i].div != None:
+                characterName = characters[i].div.string
 
-            if characterName == None:
-                characterName = characters[i].div.a.string
+                if characterName == None:
+                    characterName = characters[i].div.a.string
 
-            self.Actors[str(actors[i].a.string).strip()] = str(characterName).strip()
+                self.Actors[str(actors[i].a.string).strip()] = str(characterName).strip()
+            else:
+                self.Actors[str(actors[i].a.string).strip()] = None
 
         #self.Characters = []
         #for character in characters:
