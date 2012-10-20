@@ -1,5 +1,6 @@
 import urllib.request
 from bs4 import BeautifulSoup
+import time
 
 class Movie:
     def __init__(self, imdbLink = None):
@@ -13,23 +14,26 @@ class Movie:
 
         self.Title = soup.title.string[:-14]
         self.Year = soup.title.string[:-8][-4:]
-        self.ReleaseDate = soup.find_all("span", "nobr")[1].a.string.split("(")[0][:-1]
+        date = soup.find_all("span", "nobr")[1].a.string.split("(")[0][1:][:-1]
+        try:
+            self.ReleaseDate = time.strptime(date, '%d %B %Y')
+        except ValueError:
+            try:
+                self.ReleaseDate = time.strptime(date, '%B %Y')
+            except ValueError:
+                try:
+                    self.ReleaseDate = time.strptime(date, '%Y')
+                except ValueError:
+                    pass
 
-        self.Actors = soup.find('table', 'cast_list').find_all("td", "name")
-        #for actor in actors:
-        #   print(actor.a.string)
+        actors = soup.find('table', 'cast_list').find_all("td", "name")
+        self.Actors = []
+        for actor in actors:
+            self.Actors.append(str(actor.a.string))
 
         self.Characters = soup.find('table', 'cast_list').find_all("td", "character")
         #for character in characters:
         #    print(character.div.string)
 
-    def show(self):
-        print(self.ImdbLink)
-        print(self.Title)
-        print(self.Year)
-
-        #print(self.__actors[0])
-        #result = re.match(r'">(.*)<', actors[0])
-        #print(self.__characters[0])
-        #print(self.__actors[1])
-        #print(self.__characters[1])
+    def __repr__(self):
+        return "<Movie('%s', '%s', '%s')>" % (self.ImdbLink, self.Title, self.ReleaseDate)

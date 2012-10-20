@@ -9,7 +9,7 @@ ROOT_URL =  'http://www.imdb.com'
 
 repository = Repository()
 
-response = urllib.request.urlopen(URL_BOTTOM_100)
+response = urllib.request.urlopen(URL_TOP_250)
 html = response.read()
 soup = BeautifulSoup(html)
 
@@ -17,5 +17,6 @@ movieList = soup.table.find_all("a")
 
 for element in movieList:
     movie = Movie(ROOT_URL + element['href'])
-    movie.show()
-    repository.insertMovie(movie.Title)
+    repository.saveMovie(movie)
+    for actor in movie.Actors:
+        repository.savePersonIfDoesnExist(actor)
